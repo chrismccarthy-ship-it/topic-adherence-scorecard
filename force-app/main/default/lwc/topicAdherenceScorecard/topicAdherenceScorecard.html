@@ -1,0 +1,214 @@
+<template>
+    <lightning-card icon-name="standard:einstein" title={cardTitle}>
+        <!-- ═══════════════════════════════════════════════════════════════
+             HEADER ACTIONS — overall score badge + evaluate button
+             ══════════════════════════════════════════════════════════════ -->
+        <div slot="actions" class="slds-grid slds-grid_vertical-align-center slds-gutters_xx-small">
+            <template lwc:if={hasData}>
+                <div class="slds-col">
+                    <span
+                        class={overallBadgeClass}
+                        aria-live="polite"
+                        aria-label={overallScoreText}>
+                        Overall {overallScoreText}
+                    </span>
+                </div>
+            </template>
+            <div class="slds-col">
+                <lightning-button
+                    label={evaluateLabel}
+                    icon-name="utility:einstein"
+                    variant="brand"
+                    onclick={handleEvaluate}
+                    disabled={evaluateDisabled}>
+                </lightning-button>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             BODY
+             ══════════════════════════════════════════════════════════════ -->
+        <div class="slds-p-horizontal_medium scorecard-body" aria-busy={isLoading}>
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="slds-p-around_x-large slds-align_absolute-center loading-container">
+                    <lightning-spinner alternative-text="Evaluating adherence" size="small"></lightning-spinner>
+                    <p class="slds-text-body_small slds-m-top_small slds-text-color_weak">
+                        Comparing transcript against agent topics &amp; rubric…
+                    </p>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:if={error}>
+                <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_small" role="alert">
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" size="x-small"
+                                    variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                    <span class="slds-assistive-text">Error</span>
+                    <span>{error}</span>
+                </div>
+            </template>
+
+            <!-- Empty / pre-evaluation -->
+            <template lwc:if={showEmptyState}>
+                <div class="slds-illustration slds-illustration_small slds-p-vertical_large slds-text-align_center">
+                    <lightning-icon icon-name="utility:einstein" size="large"
+                                    alternative-text="Ready to evaluate"></lightning-icon>
+                    <h3 class="slds-text-heading_small slds-m-top_small">No evaluation yet</h3>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">
+                        <template lwc:if={canEvaluate}>
+                            Click <strong>Evaluate</strong> to score this transcript against the prompt template
+                            rubric and the agent's topics, instructions, and actions.
+                        </template>
+                        <template lwc:else>
+                            {missingInputsMessage}
+                        </template>
+                    </p>
+                </div>
+            </template>
+
+            <!-- Loaded scorecard -->
+            <template lwc:if={hasData}>
+                <!-- Summary tiles -->
+                <div class="slds-grid slds-gutters slds-m-bottom_medium summary-row" role="list">
+                    <template for:each={summaryTiles} for:item="tile">
+                        <div key={tile.key} role="listitem"
+                             class="slds-col slds-size_1-of-3">
+                            <article class={tile.tileClass}>
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <lightning-icon icon-name={tile.iconName}
+                                                    size="small"
+                                                    variant={tile.variant}
+                                                    alternative-text={tile.label}>
+                                    </lightning-icon>
+                                    <div class="slds-m-left_x-small">
+                                        <div class="slds-text-heading_medium tile-count">{tile.count}</div>
+                                        <div class="slds-text-body_small slds-text-color_weak">{tile.label}</div>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Category tabs -->
+                <lightning-tabset variant="scoped" active-tab-value={activeTab}>
+                    <template for:each={displayCategories} for:item="cat">
+                        <lightning-tab key={cat.key}
+                                       label={cat.label}
+                                       value={cat.value}
+                                       onactive={handleTabActive}>
+
+                            <div class="slds-grid slds-grid_vertical-align-center
+                                        slds-p-around_x-small category-summary">
+                                <lightning-icon icon-name={cat.iconName} size="x-small"
+                                                alternative-text={cat.label}></lightning-icon>
+                                <span class="slds-m-left_x-small slds-text-color_weak">
+                                    Category score: <strong>{cat.scoreText}</strong>
+                                </span>
+                            </div>
+
+                            <template lwc:if={cat.isEmpty}>
+                                <p class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                                    No items scored in this category.
+                                </p>
+                            </template>
+
+                            <ul class="score-list" role="list">
+                                <template for:each={cat.items} for:item="item">
+                                    <li key={item.id} class={item.rowClass} role="listitem">
+                                        <button type="button"
+                                                class="score-row__header slds-button slds-button_reset"
+                                                data-id={item.id}
+                                                onclick={handleToggleItem}
+                                                aria-expanded={item.ariaExpanded}
+                                                aria-label={item.toggleLabel}>
+                                            <div class="slds-grid slds-grid_vertical-align-center
+                                                        slds-grid_align-spread slds-wrap">
+                                                <div class="slds-grid slds-grid_vertical-align-center
+                                                            slds-shrink-none">
+                                                    <lightning-icon icon-name={item.statusIcon}
+                                                                    size="x-small"
+                                                                    variant={item.statusVariant}
+                                                                    alternative-text={item.statusLabel}>
+                                                    </lightning-icon>
+                                                    <span class="slds-m-left_small slds-text-body_regular
+                                                                 slds-text-color_default item-name">
+                                                        {item.name}
+                                                    </span>
+                                                </div>
+                                                <div class="slds-grid slds-grid_vertical-align-center">
+                                                    <span class="slds-badge slds-m-right_x-small">
+                                                        {item.scoreText}
+                                                    </span>
+                                                    <lightning-icon icon-name={item.toggleIcon}
+                                                                    size="x-small"
+                                                                    alternative-text=""
+                                                                    aria-hidden="true">
+                                                    </lightning-icon>
+                                                </div>
+                                            </div>
+                                            <template lwc:if={item.description}>
+                                                <p class="slds-text-body_small slds-text-color_weak
+                                                          slds-m-top_xx-small item-description">
+                                                    {item.description}
+                                                </p>
+                                            </template>
+                                        </button>
+
+                                        <template lwc:if={item.expanded}>
+                                            <div class="score-row__detail slds-p-around_small"
+                                                 role="region"
+                                                 aria-label={item.name}>
+                                                <template lwc:if={item.hasReasoning}>
+                                                    <h4 class="slds-text-title_caps slds-m-bottom_xx-small">
+                                                        Reasoning
+                                                    </h4>
+                                                    <p class="slds-text-body_small slds-m-bottom_small">
+                                                        {item.reasoning}
+                                                    </p>
+                                                </template>
+                                                <template lwc:if={item.hasEvidence}>
+                                                    <h4 class="slds-text-title_caps slds-m-bottom_xx-small">
+                                                        Transcript evidence
+                                                    </h4>
+                                                    <blockquote class="evidence-quote">
+                                                        {item.evidence}
+                                                    </blockquote>
+                                                </template>
+
+                                                <!-- Assign action — opens modal to create Alert__c -->
+                                                <div class="slds-grid slds-grid_align-end slds-m-top_small detail-actions">
+                                                    <lightning-button
+                                                        label="Assign action"
+                                                        icon-name="utility:assignment"
+                                                        icon-position="left"
+                                                        variant="neutral"
+                                                        data-id={item.id}
+                                                        onclick={handleAssignAction}>
+                                                    </lightning-button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </lightning-tab>
+                    </template>
+                </lightning-tabset>
+            </template>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             FOOTER
+             ══════════════════════════════════════════════════════════════ -->
+        <div slot="footer">
+            <template lwc:if={hasData}>
+                <p class="slds-text-body_small slds-text-color_weak slds-text-align_center">
+                    {evaluatedAtText}{modelText}
+                </p>
+            </template>
+        </div>
+    </lightning-card>
+</template>

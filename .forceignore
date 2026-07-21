@@ -1,0 +1,13 @@
+# LWC Jest test files — local-only, never deployed.
+# The 'createElement' import from 'lwc' is part of the @lwc/engine-dom
+# test runtime, not the production LWS sandbox, so the platform linter
+# rejects it during deploy. Keep tests in source control, exclude from deploy.
+**/lwc/**/__tests__/**
+**/lwc/**/*.test.js
+**/lwc/**/*.test.ts
+
+# Standard SFDX scratch + log noise.
+.sf/
+.sfdx/
+.localdevserver/
+**/*.log

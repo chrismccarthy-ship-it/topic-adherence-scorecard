@@ -1,0 +1,11 @@
+﻿.sf/
+.sfdx/
+.localdevserver/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+node_modules/
+.env
+.env.local

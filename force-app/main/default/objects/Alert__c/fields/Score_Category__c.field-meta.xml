@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Score_Category__c</fullName>
+    <externalId>false</externalId>
+    <label>Score Category</label>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Topics</fullName>
+                <default>false</default>
+                <label>Topics</label>
+            </value>
+            <value>
+                <fullName>Instructions</fullName>
+                <default>false</default>
+                <label>Instructions</label>
+            </value>
+            <value>
+                <fullName>Actions</fullName>
+                <default>false</default>
+                <label>Actions</label>
+            </value>
+            <value>
+                <fullName>Criteria</fullName>
+                <default>false</default>
+                <label>Criteria</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

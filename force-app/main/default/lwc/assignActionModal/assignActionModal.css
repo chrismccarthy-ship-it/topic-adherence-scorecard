@@ -1,0 +1,14 @@
+/* SLDS 2 styling hooks only — no hardcoded colors. */
+
+.context-pill {
+    background-color: var(--slds-g-color-surface-container-2, #f7f7f7);
+    border-left: 3px solid var(--slds-g-color-border-brand-1, #0176d3);
+    padding: var(--slds-g-spacing-3, 0.5rem) var(--slds-g-spacing-4, 0.75rem);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+}
+
+.context-pill .item-name {
+    color: var(--slds-g-color-on-surface, #181818);
+    font-weight: var(--slds-g-font-weight-bold, 700);
+    margin-top: var(--slds-g-spacing-1, 0.25rem);
+}

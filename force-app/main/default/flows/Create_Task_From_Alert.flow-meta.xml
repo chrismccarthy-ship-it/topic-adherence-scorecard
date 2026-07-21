@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>Creates a follow-up Task for the Alert owner whenever a new Alert__c record is inserted. Due date is driven by Priority__c (High=2d, Medium=5d, Low=10d). The Task is linked to the Alert via WhatId so it appears on the Alert's Activity timeline and in the assignee's task list views.</description>
+    <environments>Default</environments>
+    <interviewLabel>Create Task From Alert {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Create Task From Alert</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <runInMode>SystemModeWithSharing</runInMode>
+    <start>
+        <locationX>176</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Set_Due_Date_By_Priority</targetReference>
+        </connector>
+        <object>Alert__c</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+
+    <!--
+        Decision: branch on Priority__c to pick the due-date offset.
+        High = 2 days, Medium = 5 days, Low (or anything else) = 10 days.
+    -->
+    <decisions>
+        <name>Set_Due_Date_By_Priority</name>
+        <label>Set due date by priority</label>
+        <locationX>176</locationX>
+        <locationY>120</locationY>
+        <defaultConnector>
+            <targetReference>Assign_Low_Due_Date</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Low / Default</defaultConnectorLabel>
+        <rules>
+            <name>Is_High</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Priority__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>High</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_High_Due_Date</targetReference>
+            </connector>
+            <label>High</label>
+        </rules>
+        <rules>
+            <name>Is_Medium</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Priority__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Medium</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Medium_Due_Date</targetReference>
+            </connector>
+            <label>Medium</label>
+        </rules>
+    </decisions>
+
+    <!--
+        Three assignments that populate the same Date variable.
+        Splitting them out (instead of using a formula in the Create Records
+        node) keeps the logic visible in the Flow canvas for admins.
+    -->
+    <assignments>
+        <name>Assign_High_Due_Date</name>
+        <label>Due in 2 days</label>
+        <locationX>50</locationX>
+        <locationY>240</locationY>
+        <assignmentItems>
+            <assignToReference>varDueDate</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Formula_High_Date</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Create_Followup_Task</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_Medium_Due_Date</name>
+        <label>Due in 5 days</label>
+        <locationX>176</locationX>
+        <locationY>240</locationY>
+        <assignmentItems>
+            <assignToReference>varDueDate</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Formula_Medium_Date</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Create_Followup_Task</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_Low_Due_Date</name>
+        <label>Due in 10 days</label>
+        <locationX>302</locationX>
+        <locationY>240</locationY>
+        <assignmentItems>
+            <assignToReference>varDueDate</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Formula_Low_Date</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Create_Followup_Task</targetReference>
+        </connector>
+    </assignments>
+
+    <!--
+        Formulas: simple TODAY()+N. Defined as separate formula elements
+        so they're reusable and visible.
+    -->
+    <formulas>
+        <name>Formula_High_Date</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + 2</expression>
+    </formulas>
+    <formulas>
+        <name>Formula_Medium_Date</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + 5</expression>
+    </formulas>
+    <formulas>
+        <name>Formula_Low_Date</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + 10</expression>
+    </formulas>
+
+    <!--
+        Truncate Subject to 255 chars (Task.Subject is Text(255)).
+        Alert__c.Subject__c shares that limit so this is belt + braces,
+        but harmless and protects against future schema changes.
+    -->
+    <formulas>
+        <name>Formula_Task_Subject</name>
+        <dataType>String</dataType>
+        <expression>LEFT({!$Record.Subject__c}, 255)</expression>
+    </formulas>
+
+    <!--
+        Variables.
+    -->
+    <variables>
+        <name>varDueDate</name>
+        <dataType>Date</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <!--
+        Create the Task.
+
+        Field mapping:
+          OwnerId      = Alert owner (so the assignee gets it on their list views)
+          Subject      = Alert subject (truncated)
+          Description  = Alert description (already contains reasoning + evidence)
+          Priority     = Alert priority — values align with stock Task.Priority picklist
+          Status       = Not Started
+          WhatId       = Alert.Id   ← shows on Alert's Activity timeline
+          ActivityDate = priority-driven offset from today
+
+        Note: WhoId is intentionally not set. Set it later if you start
+        evaluating customer-specific calls and want the Contact attached.
+    -->
+    <recordCreates>
+        <name>Create_Followup_Task</name>
+        <label>Create follow-up task</label>
+        <locationX>176</locationX>
+        <locationY>360</locationY>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>$Record.OwnerId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <elementReference>Formula_Task_Subject</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <elementReference>$Record.Description__c</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value>
+                <elementReference>$Record.Priority__c</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Not Started</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>ActivityDate</field>
+            <value>
+                <elementReference>varDueDate</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+</Flow>

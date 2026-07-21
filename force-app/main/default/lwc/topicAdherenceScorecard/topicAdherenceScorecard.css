@@ -1,0 +1,225 @@
+/*
+ * Topic Adherence Scorecard — Styles
+ *
+ * Uses SLDS 2 global styling hooks only. Every color resolves via
+ * var(--slds-g-color-*) so the component automatically supports
+ * light + dark themes without overrides.
+ */
+
+:host {
+    display: block;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Body / containers
+   ═════════════════════════════════════════════════════════════════════ */
+
+.scorecard-body {
+    color: var(--slds-g-color-on-surface, #181818);
+}
+
+.loading-container {
+    flex-direction: column;
+    min-height: 8rem;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Overall score badge (header)
+   ═════════════════════════════════════════════════════════════════════ */
+
+.score-badge {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+    padding: var(--slds-g-spacing-1, 0.25rem) var(--slds-g-spacing-3, 0.5rem);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    border: 1px solid var(--slds-g-color-border-1, #c9c9c9);
+}
+
+.score-badge_success {
+    background-color: var(--slds-g-color-success-1, #2e844a);
+    color: var(--slds-g-color-on-success, #ffffff);
+    border-color: var(--slds-g-color-border-success-1, #2e844a);
+}
+
+.score-badge_warning {
+    background-color: var(--slds-g-color-warning-1, #fe9339);
+    color: var(--slds-g-color-on-warning, #080707);
+    border-color: var(--slds-g-color-border-warning-1, #fe9339);
+}
+
+.score-badge_error {
+    background-color: var(--slds-g-color-error-1, #ea001e);
+    color: var(--slds-g-color-on-error, #ffffff);
+    border-color: var(--slds-g-color-border-error-1, #ea001e);
+}
+
+.score-badge_inverse {
+    background-color: var(--slds-g-color-surface-3, #e5e5e5);
+    color: var(--slds-g-color-on-surface, #181818);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Summary tiles
+   ═════════════════════════════════════════════════════════════════════ */
+
+.score-tile {
+    padding: var(--slds-g-spacing-4, 0.75rem);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    border: 1px solid var(--slds-g-color-border-2, #e5e5e5);
+    background-color: var(--slds-g-color-surface-container-1, #fafafa);
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+
+.score-tile:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--slds-g-shadow-2, 0 2px 4px rgba(0,0,0,0.08));
+}
+
+.score-tile_success {
+    border-left: 4px solid var(--slds-g-color-success-1, #2e844a);
+}
+
+.score-tile_warning {
+    border-left: 4px solid var(--slds-g-color-warning-1, #fe9339);
+}
+
+.score-tile_error {
+    border-left: 4px solid var(--slds-g-color-error-1, #ea001e);
+}
+
+.tile-count {
+    color: var(--slds-g-color-on-surface, #181818);
+    font-weight: var(--slds-g-font-weight-bold, 700);
+    line-height: var(--slds-g-font-line-height-heading, 1.25);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Category summary line
+   ═════════════════════════════════════════════════════════════════════ */
+
+.category-summary {
+    background-color: var(--slds-g-color-surface-container-2, #f7f7f7);
+    border-radius: var(--slds-g-radius-border-1, 0.125rem);
+    margin-bottom: var(--slds-g-spacing-3, 0.5rem);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Score rows (expandable list items)
+   ═════════════════════════════════════════════════════════════════════ */
+
+.score-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.score-row {
+    border: 1px solid var(--slds-g-color-border-2, #e5e5e5);
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+    background-color: var(--slds-g-color-surface-container-1, #fafafa);
+    margin-bottom: var(--slds-g-spacing-2, 0.375rem);
+    overflow: hidden;
+    transition: border-color 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+
+.score-row:hover {
+    border-color: var(--slds-g-color-border-1, #c9c9c9);
+    box-shadow: var(--slds-g-shadow-1, 0 1px 2px rgba(0,0,0,0.05));
+}
+
+.score-row_expanded {
+    border-color: var(--slds-g-color-border-1, #c9c9c9);
+    box-shadow: var(--slds-g-shadow-2, 0 2px 4px rgba(0,0,0,0.08));
+}
+
+.score-row_success { border-left: 3px solid var(--slds-g-color-success-1, #2e844a); }
+.score-row_warning { border-left: 3px solid var(--slds-g-color-warning-1, #fe9339); }
+.score-row_error   { border-left: 3px solid var(--slds-g-color-error-1,   #ea001e); }
+
+.score-row__header {
+    width: 100%;
+    text-align: left;
+    padding: var(--slds-g-spacing-3, 0.5rem) var(--slds-g-spacing-4, 0.75rem);
+    cursor: pointer;
+    color: inherit;
+}
+
+.score-row__header:focus-visible {
+    outline: 2px solid var(--slds-g-color-border-brand-1, #0176d3);
+    outline-offset: -2px;
+    border-radius: var(--slds-g-radius-border-2, 0.25rem);
+}
+
+.item-name {
+    font-weight: var(--slds-g-font-weight-bold, 700);
+}
+
+.item-description {
+    margin-left: var(--slds-g-spacing-6, 1.25rem); /* aligns under name, past icon */
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Expanded detail panel
+   ═════════════════════════════════════════════════════════════════════ */
+
+.score-row__detail {
+    border-top: 1px solid var(--slds-g-color-border-2, #e5e5e5);
+    background-color: var(--slds-g-color-surface-container-2, #f7f7f7);
+    color: var(--slds-g-color-on-surface-1, #444444);
+}
+
+.evidence-quote {
+    margin: 0;
+    padding: var(--slds-g-spacing-3, 0.5rem) var(--slds-g-spacing-4, 0.75rem);
+    border-left: 3px solid var(--slds-g-color-border-brand-1, #0176d3);
+    background-color: var(--slds-g-color-surface-container-1, #fafafa);
+    border-radius: var(--slds-g-radius-border-1, 0.125rem);
+    font-style: italic;
+    color: var(--slds-g-color-on-surface, #181818);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Detail actions (Assign button row)
+   ═════════════════════════════════════════════════════════════════════ */
+
+.detail-actions {
+    padding-top: var(--slds-g-spacing-3, 0.5rem);
+    border-top: 1px dashed var(--slds-g-color-border-2, #e5e5e5);
+    margin-top: var(--slds-g-spacing-4, 0.75rem);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Responsive
+   ═════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+    .summary-row .slds-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: var(--slds-g-spacing-2, 0.375rem);
+    }
+
+    .item-name {
+        font-size: var(--slds-g-font-size-3, 0.875rem);
+    }
+}
+
+/* High-contrast support */
+@media (prefers-contrast: more) {
+    .score-row {
+        border-width: 2px;
+    }
+    .score-badge {
+        border-width: 2px;
+    }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .score-tile,
+    .score-row {
+        transition: none;
+    }
+    .score-tile:hover {
+        transform: none;
+    }
+}

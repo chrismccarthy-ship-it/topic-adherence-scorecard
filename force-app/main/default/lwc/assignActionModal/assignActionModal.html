@@ -1,0 +1,80 @@
+<template>
+    <lightning-modal-header label="Assign suggested improvement"></lightning-modal-header>
+
+    <lightning-modal-body>
+        <template lwc:if={hasScoreContext}>
+            <div class="slds-box slds-theme_shade slds-m-bottom_medium context-pill">
+                <p class="slds-text-body_small slds-text-color_weak">Scorecard finding</p>
+                <p class="slds-text-body_regular slds-text-color_default item-name">
+                    {scoreItem.name}
+                </p>
+            </div>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_small" role="alert">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="x-small"
+                                variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <lightning-record-edit-form
+            object-api-name="Alert__c"
+            onsubmit={handleSubmit}
+            onsuccess={handleSuccess}
+            onerror={handleError}>
+
+            <lightning-messages></lightning-messages>
+
+            <div class="slds-grid slds-wrap slds-gutters_x-small">
+                <div class="slds-col slds-size_1-of-1">
+                    <lightning-input-field field-name="OwnerId" required></lightning-input-field>
+                </div>
+                <div class="slds-col slds-size_1-of-1">
+                    <lightning-input-field field-name="Subject__c"
+                                           value={prefillSubject}
+                                           required></lightning-input-field>
+                </div>
+                <div class="slds-col slds-size_1-of-1">
+                    <lightning-input-field field-name="Status__c" value="New"></lightning-input-field>
+                </div>
+                <div class="slds-col slds-size_1-of-1">
+                    <lightning-input-field field-name="Summary__c"
+                                           value={prefillDescription}></lightning-input-field>
+                </div>
+
+                <!-- Hidden fields: Alert_Type stamped to AI Insight, plus traceability. -->
+                <div class="slds-hide">
+                    <lightning-input-field field-name="Alert_Type__c" value="AI Insight"></lightning-input-field>
+                </div>
+                <template lwc:if={hasScoreContext}>
+                    <div class="slds-hide">
+                        <lightning-input-field field-name="Score_Item_Id__c"
+                                               value={prefillScoreItemId}></lightning-input-field>
+                        <lightning-input-field field-name="Score_Category__c"
+                                               value={prefillCategory}></lightning-input-field>
+                    </div>
+                </template>
+                <template lwc:if={hasRelatedRecord}>
+                    <div class="slds-hide">
+                        <lightning-input-field field-name="Related_Record_Id__c"
+                                               value={relatedRecordId}></lightning-input-field>
+                    </div>
+                </template>
+            </div>
+        </lightning-record-edit-form>
+    </lightning-modal-body>
+
+    <lightning-modal-footer>
+        <lightning-button label="Cancel"
+                          onclick={handleCancel}
+                          class="slds-m-right_x-small"
+                          disabled={isSubmitting}></lightning-button>
+        <lightning-button label="Assign"
+                          variant="brand"
+                          icon-name="utility:assignment"
+                          onclick={handleSave}
+                          disabled={isSubmitting}></lightning-button>
+    </lightning-modal-footer>
+</template>
